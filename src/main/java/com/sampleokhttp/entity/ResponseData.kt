@@ -7,6 +7,6 @@ package com.sampleokhttp.entity
  *==================================
  */
 data class ResponseData<T>(
-        var Time:String?=null,
-        var Result:T?=null
+        var error:String?=null,
+        var data:T?=null
 )

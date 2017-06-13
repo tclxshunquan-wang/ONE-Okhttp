@@ -14,7 +14,6 @@ import okhttp3.Response
 class SampleInterceptor :Interceptor{
     override fun intercept(chain: Interceptor.Chain?): Response {
         val request = chain?.request()
-
         val t1 = System.nanoTime()
         Log.e("SampleOkHttp:",String.format("[发送请求] [%s] %s%n%s",
                 request?.url(), chain?.connection(), request?.headers()))

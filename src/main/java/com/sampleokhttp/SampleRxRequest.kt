@@ -1,8 +1,10 @@
 package com.sampleokhttp
 
 import android.content.Context
+import android.widget.Toast
 import com.google.gson.reflect.TypeToken
 import com.sampleokhttp.callback.SampleCallback
+import com.sampleokhttp.entity.ResponseData
 import com.sampleokhttp.entity.SampleMethod
 import com.sampleokhttp.utils.SampleLoading
 import io.reactivex.Observable
@@ -10,6 +12,7 @@ import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import okhttp3.Call
+import okhttp3.Response
 
 /**
  *==================================
@@ -17,17 +20,20 @@ import okhttp3.Call
  * @author shunq-wang
  *==================================
  */
-class SampleRxRequest<T>(ctx: Context, val tag: Any, val url: String, val params: String, val method: SampleMethod) {
+class SampleRxRequest<T>(var ctx: Context, val tag: Any, val url: String, val params: HashMap<String, String>, val method: SampleMethod, var showDialog: Boolean? = true) {
 
     var sampleOkhttp: SampleOkhttp = SampleOkhttp.getInstance()
     var observable: Observable<T>? = null
     var observer: Observer<T>? = null
     var loading: SampleLoading? = SampleLoading(ctx)
 
-    fun rxRequest(typeToken: TypeToken<T>,rxCallBack:SampleCallback<T>) {
-        show()
+    fun rxRequest(typeToken: TypeToken<T>, rxCallBack: SampleCallback<T>) {
+
         observable = Observable.create { e ->
-            sampleOkhttp.sendRequest(tag, url, params, typeToken, method, e!!)
+            sampleOkhttp.sendRequest(ctx, tag, url, params, typeToken, method, e!!)
+            if (!url.contains("get_user_info")) {
+                show()
+            }
         }
 
         observer = object : Observer<T> {
@@ -35,14 +41,17 @@ class SampleRxRequest<T>(ctx: Context, val tag: Any, val url: String, val params
                 try {
                     dismiss()
                     rxCallBack.onFailure(e)
-                }catch (e:Exception){
+                } catch (e: Exception) {
                 }
             }
 
             override fun onSubscribe(d: Disposable?) {
             }
 
-            override fun onNext(t: T) {
+            override fun onNext(t: T?) {
+                if (!(t as ResponseData<*>).error.isNullOrEmpty()) {
+                    Toast.makeText(ctx, t.error, Toast.LENGTH_SHORT).show()
+                }
                 rxCallBack.onSuccess(t)
             }
 
@@ -83,7 +92,7 @@ class SampleRxRequest<T>(ctx: Context, val tag: Any, val url: String, val params
      * 显示loading
      * **/
     fun show() {
-        if (loading != null) {
+        if (loading != null && showDialog!!) {
             loading?.show()
         }
     }
@@ -92,7 +101,7 @@ class SampleRxRequest<T>(ctx: Context, val tag: Any, val url: String, val params
      * 隐藏loading
      * **/
     fun dismiss() {
-        if (loading != null && loading!!.isShowing) {
+        if (showDialog!! && loading != null && loading!!.isShowing) {
             loading?.dismiss()
         }
     }

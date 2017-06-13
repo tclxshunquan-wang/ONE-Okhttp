@@ -10,5 +10,5 @@ interface  SampleCallback<in T>{
 
      fun onFailure( e: Throwable?)
 
-     fun onSuccess(t:T)
+     fun onSuccess(t:T?)
 }
